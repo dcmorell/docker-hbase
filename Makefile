@@ -7,6 +7,7 @@ build:
 	docker build -t bde2020/hbase-master:$(current_branch) ./hmaster
 	docker build -t bde2020/hbase-regionserver:$(current_branch) ./hregionserver
 	docker build -t bde2020/hbase-standalone:$(current_branch) ./standalone
+	docker build -t bde2020/hive:$(current_branch) ./hive
 
 wordcount:
 	docker run --network ${DOCKER_NETWORK} --env-file ${ENV_FILE} bde2020/hadoop-base:$(hadoop_branch) hdfs dfs -mkdir -p /input/
