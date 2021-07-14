@@ -16,6 +16,10 @@ ENV HADOOP_HOME /opt/hadoop-$HADOOP_VERSION
 
 WORKDIR /opt
 
+## Repo url has changed
+RUN sed -i 's/deb http\:\/\/ftp.debian.org/#deb http\:\/\/ftp.debian.org/g' /etc/apt/sources.list
+RUN sed '/#deb http\:\/\/ftp.debian.org\/debian jessie-backports main/r jessie-repos.txt' /etc/apt/sources.list
+
 #Install Hive and PostgreSQL JDBC
 RUN apt-get update && apt-get install -y wget procps && \
 	wget https://archive.apache.org/dist/hive/hive-$HIVE_VERSION/apache-hive-$HIVE_VERSION-bin.tar.gz && \
