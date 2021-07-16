@@ -12,6 +12,7 @@ services:
       - ./hadoop.env
     ports:
       - 50070:50070
+      - 9000:9000
 
   datanode:
     image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
@@ -67,18 +68,19 @@ services:
       - 2181:2181
 
   hbase-master:
-    image: bde2020/hbase-master:1.0.0-hbase1.2.6
+    image: bde2020/hbase-master:1.2.0
     container_name: hbase-master
     hostname: hbase-master
     env_file:
       - ./hbase-distributed-local.env
     environment:
+      HBASE_CONF_hbase_regionserver_hostname: hbase-region
       SERVICE_PRECONDITION: "namenode:50070 datanode:50075 zoo:2181"
     ports:
       - 16010:16010
 
   hbase-region:
-    image: bde2020/hbase-regionserver:1.0.0-hbase1.2.6
+    image: bde2020/hbase-regionserver:1.2.0
     container_name: hbase-regionserver
     hostname: hbase-regionserver
     env_file:
@@ -90,7 +92,7 @@ services:
       - 16030:16030
 
   hive-server:
-    image: bde2020/hive:1.1.1-postgresql-metastore
+    image: bde2020/hive:1.1.0-postgresql-metastore
     container_name: hive-server
     hostname: hive-server
     env_file:
@@ -102,7 +104,7 @@ services:
       - "10000:10000"
   
   hive-metastore:
-    image: bde2020/hive:1.1.1-postgresql-metastore
+    image: bde2020/hive:1.1.0-postgresql-metastore
     container_name: hive-metastore
     env_file:
       - ./hadoop.env
@@ -113,7 +115,7 @@ services:
       - "9083:9083"
   
   hive-metastore-postgresql:
-    image: bde2020/hive-metastore-postgresql:1.1.1
+    image: bde2020/hive-metastore-postgresql:1.1.0
     container_name: hive-metastore-postgresql
 
 volumes:

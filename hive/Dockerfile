@@ -37,12 +37,17 @@ RUN apt-get update && apt-get install -y wget procps && \
 
 #Custom configuration goes here
 ADD conf/hive-site.xml $HIVE_HOME/conf
+ADD conf/hbase-site.xml $HIVE_HOME/conf
 ADD conf/beeline-log4j2.properties $HIVE_HOME/conf
 ADD conf/hive-env.sh $HIVE_HOME/conf
 ADD conf/hive-exec-log4j2.properties $HIVE_HOME/conf
 ADD conf/hive-log4j2.properties $HIVE_HOME/conf
 ADD conf/ivysettings.xml $HIVE_HOME/conf
 ADD conf/llap-daemon-log4j2.properties $HIVE_HOME/conf
+
+ADD lib/*.jar /opt/hive/lib/
+
+ADD examples/* /opt/
 
 COPY startup.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/startup.sh

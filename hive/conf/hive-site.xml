@@ -15,4 +15,12 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 --><configuration>
+
+<!--
+<property>
+   <name>hive.aux.jars.path</name>
+   <value>/opt/hive-hbase-handler-1.1.0.jar</value>
+</property>
+-->
+
 </configuration>

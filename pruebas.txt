@@ -1,0 +1,146 @@
+docker cp test-hive-hbase/data_1.csv hive-server:/opt/ \
+	&& docker cp test-hive-hbase/ddl-hive.sql hive-server:/opt/ \
+	&& docker-compose exec hive-server bash
+
+
+docker-compose exec hbase-master bash
+
+hbase shell
+
+CREATE 'tbl_hbase_1', 'info', 'nav'
+
+
+---
+WITH SERDEPROPERTIES ("hbase.columns.mapping" = ":key,info:n,info:a,info:s,nav:u,nav:s,nav:y,nav:m,nav:d,nav:h")
+TBLPROPERTIES ("hbase.table.name" = "tbl_hbase_1", "hbase.mapred.output.outputtable" = "tbl_hbase_1");
+
+
+<property>
+    <name>hive.aux.jars.path</name>
+    <value>file:///usr/lib/hive/apache-hive-0.13.1-bin/lib/zookeeper-3.4.5.jar,file:///usr/lib/hive/apache-hive-0.13.1-bin/lib/hive-hbase-handler-0.13.1.jar,file:///usr/lib/hive/apache-hive-0.13.1-bin/lib/guava-11.0.2.jar,file:///usr/lib/hbase/hbase-0.98.2-hadoop2/lib/hbase-client-0.98.2-hadoop2.jar,file:///usr/lib/hbase/hbase-0.98.2-hadoop2/lib/hbase-common-0.98.2-hadoop2.jar,file:///usr/lib/hbase/hbase-0.98.2-hadoop2/lib/hbase-protocol-0.98.2-hadoop2.jar,file:///usr/lib/hbase/hbase-0.98.2-hadoop2/lib/hbase-server-0.98.2-hadoop2.jar,file:///usr/lib/hbase/hbase-0.98.2-hadoop2/lib/hbase-shell-0.98.2-hadoop2.jar,file:///usr/lib/hbase/hbase-0.98.2-hadoop2/lib/hbase-thrift-0.98.2-hadoop2.jar</value>
+  </property>
+
+
+mvn org.apache.maven.plugins:maven-dependency-plugin:2.1:get \
+    -DrepoUrl=http://download.java.net/maven/2/ \
+    -Dartifact=org.apache.hive:hive-hbase-handler:1.1.1
+
+wget -P /opt https://repo.maven.apache.org/maven2/org/apache/hive/hive-hbase-handler/1.1.0/hive-hbase-handler-1.1.0.jar 
+
+wget https://repo.maven.apache.org/maven2/org/apache/hbase/hbase-hadoop-compat/1.2.0/hbase-hadoop-compat-1.2.0.jar
+
+wget https://repo.maven.apache.org/maven2/org/apache/hbase/hbase-protocol/1.2.0/hbase-protocol-1.2.0.jar
+
+wget https://repo.maven.apache.org/maven2/org/apache/hbase/hbase-server/1.2.0/hbase-server-1.2.0.jar
+
+
+mvn org.apache.maven.plugins:maven-dependency-plugin:2.1:get \
+    -DrepoUrl=http://download.java.net/maven/2/ \
+    -Dartifact=org.apache.hbase:hbase-client:1.2.0
+
+mvn org.apache.maven.plugins:maven-dependency-plugin:2.1:get \
+    -DrepoUrl=http://download.java.net/maven/2/ \
+    -Dartifact=org.apache.hbase:hbase-common:1.2.0
+
+mvn org.apache.maven.plugins:maven-dependency-plugin:2.1:get \
+    -DrepoUrl=http://download.java.net/maven/2/ \
+    -Dartifact=org.apache.hbase.connectors.spark:hbase-spark:1.0.0
+
+??    https://mvnrepository.com/artifact/org.apache.hbase.connectors.spark/hbase-spark 
+
+mvn org.apache.maven.plugins:maven-dependency-plugin:2.1:get \
+    -DrepoUrl=https://repository.cloudera.com/artifactory/cloudera-repos/ \
+    -Dartifact=org.apache.hbase:hbase-spark:1.2.0-cdh5.14.4
+
+-DrepoUrl=http://maven.aliyun.com/nexus/content/groups/public/ \
+-DrepoUrl=https://mvnrepository.com/artifact/ \
+-DrepoUrl=https://repository.cloudera.com/artifactory/cloudera-repos/ \
+### mvn org.apache.maven.plugins:maven-dependency-plugin:2.1:get \
+    -DrepoUrl=http://download.java.net/maven/2/ \
+    -Dartifact=org.apache.hbase:hbase-server:1.2.0
+
+
+sudo netstat -tulpn | grep -w ':9000'
+sudo netstat -tulpn | grep -w ':2181'
+
+ http://localhost:50070
+ hdfs://localhost:9000/
+
+spark-shell --jars \
+/home/dcastrom/.m2/repository/org/apache/hbase/hbase-common/1.2.0/hbase-common-1.2.0.jar,\
+/home/dcastrom/.m2/repository/org/apache/hbase/hbase-client/1.2.0/hbase-client-1.2.0.jar,\
+/home/dcastrom/.m2/repository/org/apache/hbase/connectors/spark/hbase-spark/1.0.0/hbase-spark-1.0.0.jar
+
+// /home/dcastrom/.m2/repository/org/apache/hbase/hbase-spark/1.2.0-cdh5.14.4/hbase-spark-1.2.0-cdh5.14.4.jar
+
+sc.listJars
+
+
+import org.apache.hadoop.hbase.spark.HBaseContext
+import org.apache.hadoop.hbase.HBaseConfiguration
+
+val conf = new HBaseConfiguration()
+conf.set("hbase.zookeeper.quorum", "locahost")
+conf.set("hbase.zookeeper.property.clientPort", "2181")
+new HBaseContext(spark.sparkContext, conf)
+
+val hbaseTable = "default:tbl1"
+
+val columnMapping = """id string :key,
+  |col1 string cf:col1""".stripMargin
+
+val hbaseSource = "org.apache.hadoop.hbase.spark"
+
+val hbaseData = spark.read.format(hbaseSource).option("hbase.columns.mapping", columnMapping).option("hbase.table", hbaseTable)
+
+val hbaseDf = hbaseData.load()
+
+
+
+https://torredecontrol.si.orange.es/gitlab/BIGDATA/GEA_OSP/DESARROLLO_DATOS/v360_hbase_reader
+
+
+
+
+
+
+
+## EN HBase shell
+create 'tbl1', 'cf'
+
+val format1 = "org.apache.hadoop.hbase.spark"
+val fomat2 = "'org.apache.spark.sql.execution.datasources.hbase'"
+
+val catalog = """{
+    "table":{"namespace":"default", "name":"tbl1"},
+    "rowkey":"key",
+    "columns":{
+        "col0":{"cf":"rowkey", "col":"key", "type":"string"},
+        "col1":{"cf":"cf", "col":"col1", "type":"string"}
+    }
+}""".split()
+
+
+df = sc.parallelize([('a', '1.0'), ('b', '2.0')]).toDF(schema=['col0', 'col1'])
+
+df.write.options(catalog=catalog).format(format1).save()
+
+
+
+
+
+
+
+
+
+
+
+
+
+cp /home/dcastrom/.m2/repository/org/apache/hbase/hbase-common/1.2.0/hbase-common-1.2.0.jar hive/lib && cp /home/dcastrom/.m2/repository/org/apache/hbase/hbase-client/1.2.0/hbase-client-1.2.0.jar hive/lib
+
+
+hive FAILED: Execution Error, return code 1 from org.apache.hadoop.hive.ql.exec.DDLTask. org/apache/hadoop/hbase/HBaseConfiguration
+
+
+FAILED: Execution Error, return code 1 from org.apache.hadoop.hive.ql.exec.DDLTask. org/apache/hadoop/hbase/mapreduce/TableInputFormatBase
