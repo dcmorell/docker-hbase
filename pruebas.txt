@@ -29,6 +29,8 @@ wget -P /opt https://repo.maven.apache.org/maven2/org/apache/hive/hive-hbase-han
 
 wget https://repo.maven.apache.org/maven2/org/apache/hbase/hbase-hadoop-compat/1.2.0/hbase-hadoop-compat-1.2.0.jar
 
+wget https://repo.maven.apache.org/maven2/org/apache/hbase/hbase-hadoop2-compat/1.2.0/hbase-hadoop2-compat-1.2.0.jar
+
 wget https://repo.maven.apache.org/maven2/org/apache/hbase/hbase-protocol/1.2.0/hbase-protocol-1.2.0.jar
 
 wget https://repo.maven.apache.org/maven2/org/apache/hbase/hbase-server/1.2.0/hbase-server-1.2.0.jar

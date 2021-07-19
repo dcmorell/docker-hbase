@@ -81,8 +81,8 @@ services:
 
   hbase-region:
     image: bde2020/hbase-regionserver:1.2.0
-    container_name: hbase-regionserver
-    hostname: hbase-regionserver
+    container_name: hbase-region
+    hostname: hbase-region
     env_file:
       - ./hbase-distributed-local.env
     environment:
@@ -122,3 +122,7 @@ volumes:
   hadoop_namenode:
   hadoop_datanode:
   hadoop_historyserver:
+
+networks:
+  default: 
+    name: BDCASS
