@@ -47,7 +47,7 @@ ADD conf/llap-daemon-log4j2.properties $HIVE_HOME/conf
 
 ADD lib/*.jar /opt/hive/lib/
 
-ADD examples/* /opt/
+ADD demo/ /opt/demo/
 
 COPY startup.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/startup.sh

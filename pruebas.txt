@@ -5,9 +5,11 @@ docker cp test-hive-hbase/data_1.csv hive-server:/opt/ \
 
 docker-compose exec hbase-master bash
 
-hbase shell
+# Create 
+docker-compose exec hbase-master hbase shell
 
-CREATE 'tbl_hbase_1', 'info', 'nav'
+create_namespace 'space1'
+create 'space1:data', 'info', 'nav'
 
 
 ---
@@ -49,7 +51,7 @@ wget https://repo1.maven.org/maven2/org/apache/htrace/htrace-core/3.1.0-incubati
 
 wget https://repo1.maven.org/maven2/com/codahale/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar
 
-wget -P lib https://repo.maven.apache.org/maven2/org/apache/hbase/hbase-metrics-api/1.2.0/hbase-metrics-api-1.2.0.jar
+wget https://repo.maven.apache.org/maven2/org/apache/hbase/hbase-metrics-api/1.2.0/hbase-metrics-api-1.2.0.jar
 
 wget -P lib https://repo1.maven.org/maven2/com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar
 
@@ -220,6 +222,7 @@ spark-shell --conf spark.sql.hive.hiveserver2.jdbc.url="jdbc:hive2://hive-server
 --jars \
 hive/lib/hbase-common-1.2.0.jar,\
 hive/lib/hbase-shaded-client-1.2.0.jar,\
+hive/lib/hbase-shaded-server-1.2.0.jar,\
 hive/lib/hbase-protocol-1.2.0.jar,\
 hive/lib/hbase-hadoop2-compat-1.2.0.jar,\
 hive/lib/metrics-core-2.2.0.jar
@@ -237,20 +240,23 @@ import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.HBaseAdmin
 import org.apache.hadoop.hbase.client.HTable
 import org.apache.hadoop.hbase.client.Get
+import org.apache.hadoop.hbase.client.Put
 import org.apache.hadoop.hbase.client.Result
 import org.apache.hadoop.hbase.util.Bytes
+import org.apache.hadoop.hbase.client.Result
+import org.apache.hadoop.hbase.client.ResultScanner
+import org.apache.hadoop.hbase.client.Scan
+import org.apache.hadoop.hbase.client.Table
+import org.apache.hadoop.hbase.client.Connection
+import org.apache.hadoop.hbase.client.ConnectionFactory
 
-
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.ResultScanner;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
 
 val conf = HBaseConfiguration.create()
+//conf.addResource(new Path("/etc/hbase/conf/hbase-default.xml"))
+//conf.addResource(new Path("/etc/hbase/conf/hbase-site.xml"))
 conf.set("hbase.zookeeper.quorum", "zoo")
 conf.set("hbase.zookeeper.property.clientPort", "2181")
+
 
 val hbaseOk = HBaseAdmin.checkHBaseAvailable(conf)
 
@@ -260,6 +266,14 @@ val hTbl1 = new HTable(conf, "tbl1")
 
 val g = new Get(Bytes.toBytes("001"))
 val result = hTbl1.get(g)
+
+
+### Insert Data in HBase
+~~~
+val p = new Put(Bytes.toBytes("007"))
+p.add(Bytes.toBytes("cf"), Bytes.toBytes("col1"), Bytes.toBytes("val7"))
+hTbl1.put(p)
+~~~      
 
 
 #### HBase
@@ -277,3 +291,10 @@ scan 'space1:data'
 ~~~
 disable 'space1:data'
 drop 'space1:data'
+
+
+
+
+###
+Mirar
+https://bigdataprogrammers.com/load-csv-file-in-hive/

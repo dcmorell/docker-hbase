@@ -128,8 +128,6 @@ services:
       SERVICE_PRECONDITION: "hive-metastore:9083"
     ports:
       - "10000:10000"
-    volumes:
-      - "./hadoop/:/opt/hadoop-2.7.4/"
     networks:
       hadoop:
         ipv4_address: 172.25.4.1

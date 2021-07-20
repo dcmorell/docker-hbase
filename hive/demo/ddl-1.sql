@@ -15,6 +15,6 @@ ROW FORMAT DELIMITED
 FIELDS TERMINATED BY ','
 STORED AS TEXTFILE;
 
-LOAD DATA LOCAL INPATH '/opt/data-12h.csv' OVERWRITE INTO TABLE data_raw PARTITION(year=2021,month=1,day=10,hour=12);
-LOAD DATA LOCAL INPATH '/opt/data-13h.csv' OVERWRITE INTO TABLE data_raw PARTITION(year=2021,month=1,day=10,hour=13);
-LOAD DATA LOCAL INPATH '/opt/data-14h.csv' OVERWRITE INTO TABLE data_raw PARTITION(year=2021,month=1,day=10,hour=14);
+LOAD DATA LOCAL INPATH '/opt/demo/data-12h.csv' OVERWRITE INTO TABLE data_raw PARTITION(year=2021,month=1,day=10,hour=12);
+LOAD DATA LOCAL INPATH '/opt/demo/data-13h.csv' OVERWRITE INTO TABLE data_raw PARTITION(year=2021,month=1,day=10,hour=13);
+LOAD DATA LOCAL INPATH '/opt/demo/data-14h.csv' OVERWRITE INTO TABLE data_raw PARTITION(year=2021,month=1,day=10,hour=14);

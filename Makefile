@@ -1,4 +1,4 @@
-DOCKER_NETWORK = docker-hbase-hivegit_default
+DOCKER_NETWORK = hadoop
 ENV_FILE = hadoop.env
 hadoop_branch := 2.0.0-hadoop2.7.4-java8
 HBASE_VERSION := 1.2.0
@@ -20,13 +20,10 @@ wordcount:
 	docker run --network ${DOCKER_NETWORK} --env-file ${ENV_FILE} bde2020/hadoop-base:$(hadoop_branch) hdfs dfs -cat /output/*
 	docker run --network ${DOCKER_NETWORK} --env-file ${ENV_FILE} bde2020/hadoop-base:$(hadoop_branch) hdfs dfs -rm -r /output
 	docker run --network ${DOCKER_NETWORK} --env-file ${ENV_FILE} bde2020/hadoop-base:$(hadoop_branch) hdfs dfs -rm -r /input
-
-test:
-	docker cp final-hive-site.xml hive-server:/opt/hive/conf/hive-site.xml
-	docker cp ~/.m2/repository/org/apache/hive/hive-hbase-handler/1.1.1/hive-hbase-handler-1.1.1.jar hive-server:/opt
-	docker cp test-hive-hbase/data_1.csv hive-server:/opt/data_1.csv
-	docker cp test-hive-hbase/ddl-hive.sql hive-server:/opt/
-#	docker-compose exec hive-server hive -f /opt/hive/examples/hive-ddl.sql
-
+		
 clean:
+	dc hive-server exec rm /opt/*.csv
+	dc hive-server exec rm /opt/*.sql
+
+clean-hdfs: 
 	docker exec -d hive-server rm /opt/data_1.*
