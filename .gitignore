@@ -1,2 +1,4 @@
 data/
+lib/
+tmp/
 *.jar
