@@ -20,10 +20,3 @@ wordcount:
 	docker run --network ${DOCKER_NETWORK} --env-file ${ENV_FILE} bde2020/hadoop-base:$(hadoop_branch) hdfs dfs -cat /output/*
 	docker run --network ${DOCKER_NETWORK} --env-file ${ENV_FILE} bde2020/hadoop-base:$(hadoop_branch) hdfs dfs -rm -r /output
 	docker run --network ${DOCKER_NETWORK} --env-file ${ENV_FILE} bde2020/hadoop-base:$(hadoop_branch) hdfs dfs -rm -r /input
-		
-clean:
-	dc hive-server exec rm /opt/*.csv
-	dc hive-server exec rm /opt/*.sql
-
-clean-hdfs: 
-	docker exec -d hive-server rm /opt/data_1.*
