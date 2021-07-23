@@ -6,6 +6,12 @@ This branch: **hbase1.2.0-hive.1.1.0** has been prepared to develop and test app
 
 This deployment will start Zookeeper, HMaster and HRegionserver in separate containers. This deploys Hive and starts a hiveserver2 on port 10000. Metastore is running with a connection to postgresql database.
 
+## My versions of docker and docker-compose
+~~~
+- Docker version 20.10.6, build 370c289
+- docker-compose version 1.29.2, build unknown
+~~~
+
 ## Build docker images
 
 In order to build docker images, execute:
@@ -23,6 +29,23 @@ $ docker-compose up -d
 To check the running containers status:
 ~~~
 $ docker-compose ps
+~~~
+
+## You may/should add following lines to /ect/hosts
+
+~~~
+...
+172.25.1.1      namenode
+172.25.1.2      datanode
+172.25.1.3      resourcemanager
+172.25.1.4      nodemanager
+172.25.1.5      historyserver
+172.25.2.1      zoo
+172.25.3.1      hbase-master
+172.25.3.2      hbase-region
+172.25.4.1      hive-server
+172.25.4.2      hive-metastore
+172.25.4.3      hive-metastore-postgresql
 ~~~
 
 ## Testing Hive
