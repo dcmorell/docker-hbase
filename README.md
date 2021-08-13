@@ -1,10 +1,10 @@
 # docker-hbase-hive
 
-This fork based on https://github.com/big-data-europe/docker-hbase, add the services for hive from https://github.com/big-data-europe/docker-hive and also metastore from https://github.com/big-data-europe/docker-hive-metastore-postgresql
+This fork based on https://github.com/big-data-europe/docker-hbase
 
-This branch: **hbase1.2.0-hive.1.1.0** has been prepared to develop and test applications against HBase 1.2.0 and Hive 1.1.0
+This branch: **hbase-1.2.0** has been prepared to develop and test applications against HBase 1.2.0
 
-This deployment will start Zookeeper, HMaster and HRegionserver in separate containers. This deploys Hive and starts a hiveserver2 on port 10000. Metastore is running with a connection to postgresql database.
+This deployment will start Zookeeper, HMaster and HRegionserver in separate containers. 
 
 ## My versions of docker and docker-compose
 ~~~
@@ -43,17 +43,6 @@ $ docker-compose ps
 172.25.2.1      zoo
 172.25.3.1      hbase-master
 172.25.3.2      hbase-region
-172.25.4.1      hive-server
-172.25.4.2      hive-metastore
-172.25.4.3      hive-metastore-postgresql
-~~~
-
-## Testing Hive
-
-Load/read data into/from Hive:
-~~~
-$ docker-compose exec hive-server hive -f demo/ddl-1.sql
-$ docker-compose exec hive-server hive -e "SELECT * FROM data_raw"
 ~~~
 
 ## Testing HBase
@@ -77,8 +66,7 @@ $ docker-compose exec hbase-master hbase shell
 ### Launching spark-shell with required libraries and hiveserver2 endpoint
 
 ~~~
-$ spark-shell --conf spark.sql.hive.hiveserver2.jdbc.url="jdbc:hive2://hive-server:10000/" \
---jars lib/hbase-common-1.2.0.jar,\
+$ spark-shell --jars lib/hbase-common-1.2.0.jar,\
 lib/hbase-shaded-client-1.2.0.jar,\
 lib/hbase-shaded-server-1.2.0.jar,\
 lib/hbase-protocol-1.2.0.jar,\
