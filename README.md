@@ -45,12 +45,9 @@ $ docker-compose ps
 172.25.3.2      hbase-region
 ~~~
 
-## Testing HBase
-
-Code example to read from Hive and writeto HBase
+## Writing data from Spark (DataFrame) to HBase
 
 ### Preparing HBase
-
 ~~~
 $ docker-compose exec hbase-master hbase shell
 
@@ -63,98 +60,123 @@ $ docker-compose exec hbase-master hbase shell
 > describe 'space1:data'
 ~~~
 
-### Launching spark-shell with required libraries and hiveserver2 endpoint
-
+### Spark-shell with HBase dependencies
 ~~~
-$ spark-shell --jars lib/hbase-common-1.2.0.jar,\
-lib/hbase-shaded-client-1.2.0.jar,\
-lib/hbase-shaded-server-1.2.0.jar,\
-lib/hbase-protocol-1.2.0.jar,\
-lib/hbase-hadoop2-compat-1.2.0.jar,\
-lib/metrics-core-2.2.0.jar
+spark-shell --jars lib/hbase-common-1.2.0.jar,lib/hbase-shaded-client-1.2.0.jar
 ~~~
 
-The rest of code snippets should be executed in the spark-shell.
-
-### Input: Hive Partition data
-
-~~~
-val year = 2021
-val month = 1
-val day = 10
-val hour = 13
+### Creating a sample DataFrame
 ~~~
 
-### Parameters (looking for more generalization)
+import spark.implicits._
 
-~~~
-val hiveTable = "bd1.data_raw"
-val hbaseTable = "space1:data"
-val hbaseRowKey = "usr_id"
+val columns = Seq("id", "id2", "name", "url", "seconds", "year", "month", "day", "hour")
 
-object HiveDataTypes extends Enumeration {
-  type HiveDataType = Value
-  val STRING, INT, BIGINT = Value
-}
-
-import HiveDataTypes._
-
-case class HBaseMapping(hiveCol: String, colFamily: String, colKey: String, hiveDataType: HiveDataType = STRING)
-
-val hbaseMapping = List(
-  HBaseMapping("name", "info", "n"),
-  HBaseMapping("url", "nav", "u"),
-  HBaseMapping("seconds", "nav", "s", BIGINT)
+val data = Seq(
+  ("603", "AAA", "Juan", "URL1", 1001, 2021, 1, 10, 13), 
+  ("702", "AAA", "David", "URL2", 1002, 2021, 1, 10, 13), 
+  ("807", "AAA", "Maria", "URL1", 1003, 2021, 1, 10, 13),
+  ("701", "BBB", "David", "URL2", 1004, 2021, 1, 10, 13), 
+  ("808", "CCc", "Maria", "URL3", 1005, 2021, 1, 10, 13)
 )
+
+val df = data.toDF(columns:_* )
 ~~~
 
-### Compute Timestamp to data being stored in HBase
-
+### Writing a DataFrame to HBase
 ~~~
 import java.time._
-val ts = LocalDateTime.of(year, month, day, hour, 0, 0).atZone(ZoneId.of("Europe/Madrid")).toInstant().toEpochMilli()
-~~~
-
-### Read data from Hive for the given partition
-
-~~~
-val rawData = spark.sql(s"SELECT * FROM $hiveTable WHERE year=$year AND month=$month AND day=$day AND hour=$hour")
-rawData.show()
-~~~
-
-### Connect to HBase
-
-~~~
 import org.apache.hadoop.hbase.HBaseConfiguration
-import org.apache.hadoop.hbase.client.HTable
+import org.apache.hadoop.hbase.client.ConnectionFactory
+import org.apache.hadoop.hbase.client.Table
+import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.Put
 import org.apache.hadoop.hbase.client.Result
 import org.apache.hadoop.hbase.util.Bytes
 
-val conf = HBaseConfiguration.create()
-conf.set("hbase.zookeeper.quorum", "zoo")
-conf.set("hbase.zookeeper.property.clientPort", "2181")
-~~~
+val hbaseTable = "space1:data"
+val rowKeyField1 = "id"
+val rowKeyField2 = "id2"
+val colFamily = "cf"
 
-### Write data to HBase: loop - each row in dataframe will be stored as a HBase row
+case class HBaseMapping(dfCol: String, colKey: String, dataType: String = "STRING")
 
-~~~
-val htable = new HTable(conf, hbaseTable)
+val hbaseMapping = Seq(
+  HBaseMapping("name", "name"),
+  HBaseMapping("url", "url"),
+  HBaseMapping("seconds", "sec", "BIGINT")
+)
 
 import scala.collection.JavaConverters._
 
-rawData.takeAsList(1000).asScala.foreach(row => {
-  val key = "" + row.getAs[Long](hbaseRowKey)
-  val p = new Put(Bytes.toBytes(key), ts)
-  hbaseMapping.foreach( hbaseMapping => {
-    val HBaseMapping(hiveCol, colFamily, colKey, hiveDataType) = hbaseMapping
-    val x = hiveDataType match {
-      case STRING => Bytes.toBytes(row.getAs[String](hiveCol))
-      case INT => Bytes.toBytes("" + row.getAs[Int](hiveCol))
-      case BIGINT => Bytes.toBytes("" + row.getAs[Long](hiveCol))
-    }
-    p.add(Bytes.toBytes(colFamily), Bytes.toBytes(colKey), x)
+val colFamilyBytes = Bytes.toBytes(colFamily)
+
+df.foreachPartition( partition => {
+  
+  val conf1 = HBaseConfiguration.create()
+  conf1.set("hbase.zookeeper.quorum", "zoo")
+  conf1.set("hbase.zookeeper.property.clientPort", "2181")
+  val connection1 = ConnectionFactory.createConnection(conf1)
+  val htable1 = connection1.getTable(TableName.valueOf("space1:data"))
+
+  partition.foreach( row => {
+  
+    val year = row.getAs[Int]("year")
+    val month = row.getAs[Int]("month")
+    val day = row.getAs[Int]("day")
+    val hour = row.getAs[Int]("hour")
+
+    val ts = LocalDateTime.of(year, month, day, hour, 0, 0).atZone(ZoneId.of("Europe/Madrid")).toInstant().toEpochMilli()
+  
+    val key1 = row.getAs[String](rowKeyField1)
+    val key2 = row.getAs[String](rowKeyField2)
+    val key = key1.reverse(0) + "0" + key1 + "_" + key2
+
+    val p = new Put(Bytes.toBytes(key), ts)
+
+    hbaseMapping.foreach( hbaseMapping => {
+      val HBaseMapping(hiveCol, colKey, hiveDataType) = hbaseMapping
+      val x = hiveDataType match {
+        case "STRING" => Bytes.toBytes(row.getAs[String](hiveCol))
+        case "INT" => Bytes.toBytes("" + row.getAs[Int](hiveCol))
+        case "BIGINT" => Bytes.toBytes("" + row.getAs[Long](hiveCol))
+      }
+      //p.add(colFamilyBytes, Bytes.toBytes(colKey), x)
+      p.addColumn(colFamilyBytes, Bytes.toBytes(colKey), x)
+    })
+
+    htable1.put(p)
   })
-  htable.put(p)
+
+  htable1.close()
+  connection1.close()
 })
-~~~      
+~~~
+
+### Querying data from HBase
+~~~
+scan
+
+get "space1:data", '800_AAA', {COLUMN => ['cf:sec', 'cf:url'], TIMERANGE => [1610280800000, 1610290000000], VERSIONS => 10}
+
+get "space1:data", '800_AAA', {COLUMN => ['cf:sec', 'cf:url'], TIMERANGE => [1610280800000, 1610290000000]}
+~~~
+
+### Notes
+
+1) We are avoiding deprecated classes (HTable) and methods (.add())
+
+2) In this case, we prefer hashing instead of salting
+
+https://dwgeek.com/avoid-hbase-hotspotting.html/
+http://www.devdoc.net/bigdata/hbase-0.98.7-hadoop1/book/rowkey.design.html
+
+3) Rowkey is composed by: key1 and key2 values and is prefixed with a simple hashfunction (to avoid hotspotting). The hash function gives as result two chars: the last character of key1 followed by '0'
+
+4) Now to retrieve columns for a key (composed key) (key1, key2) := (k1, k2)
+~~~
+x = k1.reverse(0) + '0' + key1 + '_' + key2
+GET 'space:data1', x ...
+~~~
+
+
